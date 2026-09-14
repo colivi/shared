@@ -31,7 +31,8 @@ package common
 }
 
 #timeFormat: {
-	unit:          "nanoseconds" | "microseconds" | "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "weeks" | "months" | "years"
+	// dtdhms: duration in seconds as "D d HH:MM:SS" (Grafana dtdhms parity; no month/year auto-scale)
+	unit:          "nanoseconds" | "microseconds" | "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "weeks" | "months" | "years" | "dtdhms"
 	decimalPlaces?: number
 }
 
@@ -59,7 +60,11 @@ package common
 }
 
 #throughputFormat: {
-	unit:          "bits/sec" | "decbits/sec" | "bytes/sec" | "decbytes/sec" | "counts/sec" | "events/sec" | "messages/sec" | "ops/sec" | "packets/sec" | "reads/sec" | "records/sec" | "requests/sec" | "rows/sec" | "writes/sec"
+	unit: "bits/sec" | "decbits/sec" | "bytes/sec" | "decbytes/sec" | "counts/sec" | "events/sec" | "messages/sec" | "ops/sec" | "packets/sec" | "reads/sec" | "records/sec" | "requests/sec" | "rows/sec" | "writes/sec" |
+		// Additional rate units (id = display suffix; Grafana/custom panel aliases)
+		"tps" | "trc/s" | "trx/s" | "e/s" | "op/s" | "ops/s" | "msg/s" | "msg/sec" | "errors/s" | "calls/s" | "qps" |
+		"drop/s" | "reject/s" | "requests/s" | "flows/s" | "fail/sec" | "to/s" | "c/s" | "gc/s" | "tk/s" | "cxn/s" |
+		"count:tps" | "count:traces/s" | "count:msg/s"
 	decimalPlaces?: number
 	shortValues?:   bool
 }

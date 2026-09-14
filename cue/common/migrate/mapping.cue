@@ -24,6 +24,8 @@ package migrate
 		d:            "days"
 		dtdurations:  "seconds"
 		dtdurationms: "milliseconds"
+		// Grafana dtdhms: fixed D d HH:MM:SS (do not map to seconds — different display)
+		dtdhms:       "dtdhms"
 		dateTimeAsIso: "datetime-iso"
 		// percent units
 		percent:     "percent"
@@ -52,6 +54,31 @@ package migrate
 		ops: "ops/sec"
 		pps: "packets/sec"
 		wps: "writes/sec"
+		// Additional Grafana / custom rate unit aliases → Perses throughput ids
+		tps:         "tps"
+		"trc/s":     "trc/s"
+		"trx/s":     "trx/s"
+		"e/s":       "e/s"
+		"op/s":      "op/s"
+		"ops/s":     "ops/s"
+		"msg/s":     "msg/s"
+		"msg/sec":   "msg/sec"
+		"errors/s":  "errors/s"
+		"calls/s":   "calls/s"
+		qps:         "qps"
+		"drop/s":    "drop/s"
+		"reject/s":  "reject/s"
+		"requests/s": "requests/s"
+		"flows/s":   "flows/s"
+		"fail/sec":  "fail/sec"
+		"to/s":      "to/s"
+		"c/s":       "c/s"
+		"gc/s":      "gc/s"
+		"tk/s":      "tk/s"
+		"cxn/s":     "cxn/s"
+		"count:tps": "count:tps"
+		"count:traces/s": "count:traces/s"
+		"count:msg/s": "count:msg/s"
 	}
 	// mapping table for the calculation attribute (key = grafana unit, value = perses equivalent)
 	calc: {
