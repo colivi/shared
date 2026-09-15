@@ -13,21 +13,28 @@
 
 package common
 
+import "strings"
+
 #format: #simpleFormat | #floatFormat | #shortenableFormat
 
 #simpleFormat: {
     unit?: #dateFormat.unit
+    // Optional display override (axis / legend / tooltip). unit stays the stable key.
+    customLabel?: strings.MinRunes(1)
 }
 
 #floatFormat: {
     unit?: #timeFormat.unit | #percentFormat.unit | #currencyFormat.unit | #temperatureFormat.unit
     decimalPlaces?: number
+    customLabel?: strings.MinRunes(1)
 }
 
 #shortenableFormat: {
     unit?: #decimalFormat.unit | #bitsFormat.unit | #bytesFormat.unit | #throughputFormat.unit
 	decimalPlaces?: number
 	shortValues?:   bool
+	// Optional display override (axis / legend / tooltip). unit stays the stable key.
+	customLabel?:   strings.MinRunes(1)
 }
 
 #timeFormat: {
