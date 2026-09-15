@@ -243,3 +243,66 @@ export function replaceVariablesForDisplay(text: string, variableState: Variable
   }
   return replaceVariables(text, displayState);
 }
+
+/**
+ * Replace dashboard variables in a URL, including those nested inside
+ * percent-encoded query parameters (e.g. Explore `data=%24var`).
+ *
+ * 1. `replaceVariables` on the raw string (unencoded `$var` still works).
+ * 2. Parse query params (URLSearchParams decodes once), expand each value,
+ *    rebuild with `append` so repeated keys are preserved.
+ * 3. Keep the original path/prefix before `?` so relative targets are unchanged
+ *    (`?data=…`, `explore?…`, not forced `/…`).
+ */
+export function replaceVariablesInUrl(url: string, variableState: VariableStateMap): string {
+  let result = replaceVariables(url, variableState);
+
+  try {
+    const isAbsolute = /^https?:\/\//i.test(result);
+    const isProtocolRelative = result.startsWith('//');
+    // Skip non-http schemes (mailto:, etc.) — only expand via step 1.
+    if (!isAbsolute && !isProtocolRelative && /^[a-z][a-z0-9+.-]*:/i.test(result)) {
+      return result;
+    }
+
+    const parseInput = isProtocolRelative ? `http:${result}` : result;
+    const u = new URL(parseInput, isAbsolute || isProtocolRelative ? undefined : 'http://perses.local');
+    let changed = false;
+
+    const keys = [...new Set(u.searchParams.keys())];
+    for (const key of keys) {
+      const values = u.searchParams.getAll(key);
+      const replacedValues = values.map((value) => replaceVariables(value, variableState));
+      if (!replacedValues.some((v, i) => v !== values[i])) {
+        continue;
+      }
+      changed = true;
+      u.searchParams.delete(key);
+      for (const v of replacedValues) {
+        u.searchParams.append(key, v);
+      }
+    }
+
+    if (!changed) {
+      return result;
+    }
+
+    if (isAbsolute) {
+      return u.href;
+    }
+    if (isProtocolRelative) {
+      return `//${u.host}${u.pathname}${u.search}${u.hash}`;
+    }
+
+    // Relative: preserve original substring before ?/# (do not force leading /).
+    const q = result.indexOf('?');
+    const h = result.indexOf('#');
+    let baseEnd = result.length;
+    if (q >= 0) baseEnd = q;
+    else if (h >= 0) baseEnd = h;
+    const base = result.slice(0, baseEnd);
+    return `${base}${u.search}${u.hash}`;
+  } catch {
+    return result;
+  }
+}
