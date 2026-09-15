@@ -203,6 +203,96 @@ export function applyMergeSeriesTransform(data: Array<Record<string, unknown>>):
   return result;
 }
 
+/** Treat empty string like omitted (editor / CUE can emit ""). */
+function nonEmpty(s: string | undefined, fallback: string): string {
+  const t = s?.trim();
+  return t ? t : fallback;
+}
+
+function hasOwn(row: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(row, key);
+}
+
+/**
+ * Pivot: rows grouped by rowField, dynamic columns from columnLabel values.
+ * Last value wins on duplicate (time, label).
+ */
+export function applyPivotByLabelTransform(
+  data: Array<Record<string, unknown>>,
+  columnLabel: string,
+  rowField = 'timestamp',
+  valueField = 'value',
+  rowColumnName?: string,
+): Array<Record<string, unknown>> {
+  if (!columnLabel || data.length === 0) {
+    return data;
+  }
+
+  const rowFieldName = nonEmpty(rowField, 'timestamp');
+  const valueFieldName = nonEmpty(valueField, 'value');
+  let rowCol = nonEmpty(rowColumnName, rowFieldName);
+
+  const resolveKey = (row: Record<string, unknown>, base: string): string | undefined => {
+    if (hasOwn(row, base)) return base;
+    return Object.keys(row).find((k) => k === base || k.startsWith(base + ' #') || k.startsWith(base + '#'));
+  };
+
+  const labelSet = new Set<string>();
+  const groups = new Map<string, Record<string, unknown>>();
+
+  for (const row of data) {
+    const rowKeyName = resolveKey(row, rowFieldName);
+    const labelKeyName = resolveKey(row, columnLabel);
+    const valueKeyName = resolveKey(row, valueFieldName);
+    if (rowKeyName === undefined || labelKeyName === undefined) {
+      continue;
+    }
+
+    const rowKey = row[rowKeyName];
+    const label = row[labelKeyName];
+    if (rowKey === undefined || rowKey === null || label === undefined || label === null) {
+      continue;
+    }
+
+    // Avoid clobbering the row identity column when a series label equals rowCol.
+    let labelStr = String(label);
+    if (labelStr === rowCol) {
+      labelStr = `${labelStr} (value)`;
+    }
+    labelSet.add(labelStr);
+    const groupId = String(rowKey);
+
+    let out = groups.get(groupId);
+    if (!out) {
+      out = { [rowCol]: rowKey };
+      groups.set(groupId, out);
+    }
+    if (valueKeyName !== undefined) {
+      out[labelStr] = row[valueKeyName];
+    }
+  }
+
+  const labels = [...labelSet].toSorted((a, b) => a.localeCompare(b));
+  return [...groups.entries()]
+    .toSorted((a, b) => {
+      const va = a[1][rowCol];
+      const vb = b[1][rowCol];
+      if (typeof va === 'number' && typeof vb === 'number') {
+        return (vb as number) - (va as number);
+      }
+      return String(vb).localeCompare(String(va));
+    })
+    .map(([, row]) => {
+      const ordered: Record<string, unknown> = { [rowCol]: row[rowCol] };
+      for (const lab of labels) {
+        if (hasOwn(row, lab)) {
+          ordered[lab] = row[lab];
+        }
+      }
+      return ordered;
+    });
+}
+
 /*
  * Transforms query data with the given transforms
  */
@@ -211,10 +301,15 @@ export function transformData(
   transforms: Transform[],
 ): Array<Record<string, unknown>> {
   let result: Array<Record<string, unknown>> = data;
+  // Only skip final alpha sort when the last *enabled* transform is PivotByLabel
+  // (pivot already orders: row column first, then labels). Intermediate pivots must
+  // not leave skipAlphaSort stuck true for later transforms.
+  let lastEnabledKind: Transform['kind'] | undefined;
 
   // Apply transforms by their orders
   for (const transform of transforms ?? []) {
     if (transform.spec.disabled) continue;
+    lastEnabledKind = transform.kind;
 
     switch (transform.kind) {
       case 'JoinByColumnValue': {
@@ -239,7 +334,23 @@ export function transformData(
         result = applyMergeSeriesTransform(result);
         break;
       }
+      case 'PivotByLabel': {
+        if (transform.spec.columnLabel) {
+          result = applyPivotByLabelTransform(
+            result,
+            transform.spec.columnLabel,
+            nonEmpty(transform.spec.rowField, 'timestamp'),
+            nonEmpty(transform.spec.valueField, 'value'),
+            transform.spec.rowColumnName,
+          );
+        }
+        break;
+      }
     }
+  }
+
+  if (lastEnabledKind === 'PivotByLabel') {
+    return result;
   }
 
   // Ordering data column alphabetically
