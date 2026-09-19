@@ -80,12 +80,7 @@ describe('GridTitle collapsed panel count', () => {
   it('toggles open on header click', async () => {
     const onToggleOpen = vi.fn();
     render(
-      <GridTitle
-        panelGroupId={0}
-        title="Dashboard Info"
-        panelCount={2}
-        collapse={{ isOpen: false, onToggleOpen }}
-      />,
+      <GridTitle panelGroupId={0} title="Dashboard Info" panelCount={2} collapse={{ isOpen: false, onToggleOpen }} />,
     );
     await userEvent.click(screen.getByTestId('panel-group-header'));
     expect(onToggleOpen).toHaveBeenCalled();
