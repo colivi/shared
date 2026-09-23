@@ -27,15 +27,19 @@ interface LinksProps {
   variant: LinksVariant;
 }
 
+function stopAncestorClose(event: MouseEvent): void {
+  event.stopPropagation();
+}
+
+function linkKey(link: Link): string {
+  return `${link.name ?? ''}:${link.url}`;
+}
+
 export function LinksDisplay({ links, variant }: LinksProps): ReactElement | null {
   const reactId = useId();
   const buttonId = `${variant}-links-button-${reactId.replace(/:/g, '')}`;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpened = Boolean(anchorEl);
-
-  const stopAncestorClose = (event: MouseEvent): void => {
-    event.stopPropagation();
-  };
 
   const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>): void => {
     stopAncestorClose(event);
@@ -75,8 +79,8 @@ export function LinksDisplay({ links, variant }: LinksProps): ReactElement | nul
     if (canRenderAsChips) {
       return (
         <Stack direction="row" spacing={1}>
-          {links.map((link: Link, index) => (
-            <LinkChip key={`${link.name ?? 'link'}-${index}`} link={link} />
+          {links.map((link: Link) => (
+            <LinkChip key={linkKey(link)} link={link} />
           ))}
         </Stack>
       );
@@ -119,8 +123,8 @@ export function LinksDisplay({ links, variant }: LinksProps): ReactElement | nul
           onClick: stopAncestorClose,
         }}
       >
-        {links.map((link: Link, index) => (
-          <LinkMenuItem key={`${link.name ?? 'link'}-${index}`} link={link} />
+        {links.map((link: Link) => (
+          <LinkMenuItem key={linkKey(link)} link={link} />
         ))}
       </Menu>
     </>

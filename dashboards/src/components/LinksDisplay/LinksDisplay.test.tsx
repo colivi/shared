@@ -11,20 +11,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { DataQueriesProvider, TimeRangeProviderBasic } from '@perses-dev/plugin-system';
 import type { Link } from '@perses-dev/spec';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 
+import { VariableProvider } from '../../context';
+import { renderWithContext } from '../../test';
 import { LinksDisplay } from './LinksDisplay';
 
-// Variable hooks are used for URL interpolation; keep identity for tests.
-vi.mock('@perses-dev/plugin-system', async () => {
-  const actual = await vi.importActual<typeof import('@perses-dev/plugin-system')>('@perses-dev/plugin-system');
-  return {
-    ...actual,
-    useReplaceVariablesInString: (v?: string) => v,
-    useReplaceVariablesInUrl: (v?: string) => v,
-  };
+const testTheme = createTheme({
+  transitions: { create: () => 'none' },
 });
 
 const multiLinks: Link[] = [
@@ -37,9 +35,21 @@ const multiLinks: Link[] = [
   { name: '[Explore] By Phase', url: '/explore?q=phase', targetBlank: true },
 ];
 
+function renderLinks(ui: ReactElement): ReturnType<typeof renderWithContext> {
+  return renderWithContext(
+    <ThemeProvider theme={testTheme}>
+      <TimeRangeProviderBasic initialTimeRange={{ pastDuration: '1h' }}>
+        <VariableProvider initialVariableDefinitions={[]}>
+          <DataQueriesProvider definitions={[]}>{ui}</DataQueriesProvider>
+        </VariableProvider>
+      </TimeRangeProviderBasic>
+    </ThemeProvider>,
+  );
+}
+
 describe('LinksDisplay', () => {
-  it('opens a multi-link menu and lists all link names (panel variant)', async () => {
-    render(<LinksDisplay links={multiLinks} variant="panel" />);
+  it('opens a multi-link menu and lists all link names (panel variant)', async (): Promise<void> => {
+    renderLinks(<LinksDisplay links={multiLinks} variant="panel" />);
 
     const trigger = screen.getByRole('button', { name: /panel-links/i });
     fireEvent.pointerDown(trigger);
@@ -50,8 +60,8 @@ describe('LinksDisplay', () => {
     }
   });
 
-  it('uses unique button ids so multiple layouts do not collide', () => {
-    const { container } = render(
+  it('uses unique button ids so multiple layouts do not collide', (): void => {
+    const { container } = renderLinks(
       <>
         <LinksDisplay links={multiLinks} variant="panel" />
         <LinksDisplay links={multiLinks} variant="panel" />
