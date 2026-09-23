@@ -53,7 +53,7 @@ describe('OverflowMenu', () => {
     fireEvent.pointerDown(linksBtn);
     fireEvent.click(linksBtn);
 
-    expect(await screen.findByText('Link A', { hidden: true })).toBeInTheDocument();
-    expect(screen.getByText('Link B', { hidden: true })).toBeInTheDocument();
+    expect(await screen.findByRole('menuitem', { name: 'Link A', hidden: true })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Link B', hidden: true })).toBeInTheDocument();
   });
 });
