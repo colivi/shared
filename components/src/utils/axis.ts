@@ -31,16 +31,21 @@ const AXIS_LABEL_PADDING = 16;
 
 function estimateLabelWidth(format: FormatOptions | undefined, maxValue: number): number {
   const formattedLabel = formatValue(maxValue, format);
+  const fallback = Math.max(formattedLabel.length * CHAR_WIDTH_BASE, 28);
   if (typeof document === 'undefined') {
-    return Math.max(formattedLabel.length * CHAR_WIDTH_BASE, 28);
+    return fallback;
   }
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  if (!context) {
-    return Math.max(formattedLabel.length * CHAR_WIDTH_BASE, 28);
+  try {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return fallback;
+    }
+    context.font = '12px sans-serif';
+    return Math.max(context.measureText(formattedLabel).width, 28);
+  } catch {
+    return fallback;
   }
-  context.font = '12px sans-serif';
-  return Math.max(context.measureText(formattedLabel).width, 28);
 }
 
 /*
