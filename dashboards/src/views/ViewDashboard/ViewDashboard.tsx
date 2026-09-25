@@ -28,6 +28,7 @@ import { DEFAULT_DASHBOARD_DURATION, DEFAULT_REFRESH_INTERVAL } from '../../cons
 import type { DatasourceStoreProviderProps, VariableProviderProps } from '../../context';
 import { DatasourceStoreProvider, VariableProviderWithQueryParams, AnnotationProvider } from '../../context';
 import { DashboardProviderWithQueryParams } from '../../context/DashboardProvider/DashboardProviderWithQueryParams';
+import { resolveDashboardTimeZone } from '../../utils/timezone';
 import type { DashboardAppProps } from './DashboardApp';
 import { DashboardApp } from './DashboardApp';
 
@@ -57,6 +58,8 @@ export function ViewDashboard(props: ViewDashboardProps): ReactElement {
     isCreating,
     isInitialVariableSticky,
     isLeavingConfirmDialogEnabled,
+    isLockModeAvailable,
+    isUpdateButtonAvailable,
     dashboardTitleComponent,
     onSave,
     onDiscard,
@@ -70,6 +73,11 @@ export function ViewDashboard(props: ViewDashboardProps): ReactElement {
   const dashboardRefreshInterval = spec.refreshInterval ?? DEFAULT_REFRESH_INTERVAL;
   const initialTimeRange = useInitialTimeRange(dashboardDuration);
   const initialRefreshInterval = useInitialRefreshInterval(dashboardRefreshInterval);
+  // Seed TimeRangeProviderWithQueryParams → useTimeZoneParams (URL ?tz= still wins).
+  const initialTimeZone = useMemo(
+    () => resolveDashboardTimeZone(spec.timezone, userPreferenceTimezone),
+    [spec.timezone, userPreferenceTimezone],
+  );
   const { data } = usePluginBuiltinVariableDefinitions();
 
   const builtinVariables = useMemo(() => {
@@ -119,6 +127,7 @@ export function ViewDashboard(props: ViewDashboardProps): ReactElement {
         <TimeRangeProviderWithQueryParams
           initialTimeRange={initialTimeRange}
           initialRefreshInterval={initialRefreshInterval}
+          initialTimeZone={initialTimeZone}
         >
           <VariableProviderWithQueryParams
             initialVariableDefinitions={spec.variables}
@@ -151,6 +160,8 @@ export function ViewDashboard(props: ViewDashboardProps): ReactElement {
                     isCreating={isCreating}
                     isInitialVariableSticky={isInitialVariableSticky}
                     isLeavingConfirmDialogEnabled={isLeavingConfirmDialogEnabled}
+                    isLockModeAvailable={isLockModeAvailable}
+                    isUpdateButtonAvailable={isUpdateButtonAvailable}
                     dashboardTitleComponent={dashboardTitleComponent}
                     onSave={onSave}
                     onDiscard={onDiscard}
