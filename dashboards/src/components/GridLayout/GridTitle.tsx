@@ -30,6 +30,7 @@ import { usePanelGroupActions, useEditMode, useDeletePanelGroupDialog } from '..
 export interface GridTitleProps {
   panelGroupId: PanelGroupId;
   title: string;
+  /** Number of panels in the group, shown next to the title when the group is collapsed. */
   panelCount?: number;
   collapse?: {
     isOpen: boolean;
