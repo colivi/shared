@@ -13,6 +13,14 @@
 
 import { getFormattedMultipleYAxes, getFormattedMultipleYAxesLayout } from './axis';
 
+beforeAll(() => {
+  // jsdom has no canvas metrics; force the length-based fallback path.
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+    configurable: true,
+    value: () => null,
+  });
+});
+
 describe('getFormattedMultipleYAxesLayout', () => {
   it('returns only the left axis when there are no additional formats', () => {
     const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(
