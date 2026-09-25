@@ -25,6 +25,8 @@ import type { PersesPlugin, RemotePluginModule } from './PersesPlugin.types';
 
 let instance: ModuleFederation | null = null;
 
+const DEFAULT_PLUGINS_ASSETS_BASE_URL = '/plugins';
+
 function createSharedModuleLoader<TModule>(loadModule: () => Promise<TModule>): () => Promise<() => TModule> {
   return async () => {
     const module = await loadModule();
@@ -129,51 +131,51 @@ const getPluginRuntime = (): ModuleFederation => {
           },
         },
         '@perses-dev/spec': {
-          version: '0.3.0-beta.8',
+          version: '0.3.0-beta.9',
           lib: () => getHostSharedModule('@perses-dev/spec'),
           shareConfig: {
             singleton: true,
-            requiredVersion: '^0.3.0-beta.8',
+            requiredVersion: '^0.3.0-beta.9',
           },
         },
         '@perses-dev/client': {
-          version: '0.55.0-beta.12',
+          version: '0.55.0-beta.13',
           lib: () => getHostSharedModule('@perses-dev/client'),
           shareConfig: {
             singleton: true,
-            requiredVersion: '^0.55.0-beta.12',
+            requiredVersion: '^0.55.0-beta.13',
           },
         },
         '@perses-dev/components': {
-          version: '0.55.0-beta.12',
+          version: '0.55.0-beta.13',
           lib: () => getHostSharedModule('@perses-dev/components'),
           shareConfig: {
             singleton: true,
-            requiredVersion: '^0.55.0-beta.12',
+            requiredVersion: '^0.55.0-beta.13',
           },
         },
         '@perses-dev/plugin-system': {
-          version: '0.55.0-beta.12',
+          version: '0.55.0-beta.13',
           lib: () => getHostSharedModule('@perses-dev/plugin-system'),
           shareConfig: {
             singleton: true,
-            requiredVersion: '^0.55.0-beta.12',
+            requiredVersion: '^0.55.0-beta.13',
           },
         },
         '@perses-dev/explore': {
-          version: '0.55.0-beta.12',
+          version: '0.55.0-beta.13',
           lib: () => getHostSharedModule('@perses-dev/explore'),
           shareConfig: {
             singleton: true,
-            requiredVersion: '^0.55.0-beta.12',
+            requiredVersion: '^0.55.0-beta.13',
           },
         },
         '@perses-dev/dashboards': {
-          version: '0.55.0-beta.12',
+          version: '0.55.0-beta.13',
           lib: () => getHostSharedModule('@perses-dev/dashboards'),
           shareConfig: {
             singleton: true,
-            requiredVersion: '^0.55.0-beta.12',
+            requiredVersion: '^0.55.0-beta.13',
           },
         },
         // Below are the shared modules that are used by the plugins and are loaded asynchronously on demand using get rather than lib.
@@ -263,7 +265,7 @@ const registerRemote = (name: string, registry?: string, version?: string, baseU
   const existingRemote = pluginRuntime.options.remotes.find((remote) => remote.name === registryName);
   if (!existingRemote) {
     const nameVersionRegistry = [name, version, registry].filter(Boolean).join('~');
-    const prefix = baseURL || '/plugins';
+    const prefix = baseURL ?? DEFAULT_PLUGINS_ASSETS_BASE_URL;
     const remoteEntryURL = `${prefix}/${nameVersionRegistry}/mf-manifest.json`;
 
     pluginRuntime.registerRemotes([
