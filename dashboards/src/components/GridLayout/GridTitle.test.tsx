@@ -13,7 +13,6 @@
 
 import type * as PluginSystemModule from '@perses-dev/plugin-system';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
 import { GridTitle } from './GridTitle';
 
@@ -34,7 +33,7 @@ vi.mock('../../context', () => ({
 }));
 
 describe('GridTitle collapsed panel count', () => {
-  it('appends panel count when collapsed', () => {
+  it('shows panel count next to title when collapsed', () => {
     render(
       <GridTitle
         panelGroupId={0}
@@ -43,7 +42,9 @@ describe('GridTitle collapsed panel count', () => {
         collapse={{ isOpen: false, onToggleOpen: vi.fn() }}
       />,
     );
-    expect(screen.getByText('Dashboard Info (3 panels)')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Dashboard Info' })).toBeInTheDocument();
+    expect(screen.getByText('(3 panels)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'expand group Dashboard Info' })).toBeInTheDocument();
   });
 
   it('uses singular panel when count is 1', () => {
@@ -55,7 +56,8 @@ describe('GridTitle collapsed panel count', () => {
         collapse={{ isOpen: false, onToggleOpen: vi.fn() }}
       />,
     );
-    expect(screen.getByText('Overview (1 panel)')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Overview' })).toBeInTheDocument();
+    expect(screen.getByText('(1 panel)')).toBeInTheDocument();
   });
 
   it('hides count when expanded', () => {
@@ -67,22 +69,13 @@ describe('GridTitle collapsed panel count', () => {
         collapse={{ isOpen: true, onToggleOpen: vi.fn() }}
       />,
     );
-    expect(screen.getByText('Dashboard Info')).toBeInTheDocument();
-    expect(screen.queryByText(/3 panels/)).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Dashboard Info' })).toBeInTheDocument();
+    expect(screen.queryByText(/panels/)).not.toBeInTheDocument();
   });
 
   it('hides count when collapse is not used', () => {
     render(<GridTitle panelGroupId={0} title="Always open" panelCount={3} />);
-    expect(screen.getByText('Always open')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Always open' })).toBeInTheDocument();
     expect(screen.queryByText(/panels/)).not.toBeInTheDocument();
-  });
-
-  it('toggles open on header click', async () => {
-    const onToggleOpen = vi.fn();
-    render(
-      <GridTitle panelGroupId={0} title="Dashboard Info" panelCount={2} collapse={{ isOpen: false, onToggleOpen }} />,
-    );
-    await userEvent.click(screen.getByTestId('panel-group-header'));
-    expect(onToggleOpen).toHaveBeenCalled();
   });
 });

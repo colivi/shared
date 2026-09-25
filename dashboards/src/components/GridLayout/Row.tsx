@@ -187,7 +187,7 @@ export function Row({
         <GridTitle
           panelGroupId={panelGroupId}
           title={groupDefinition.title}
-          panelCount={groupDefinition.itemLayouts.length}
+          panelCount={expandedItemLayouts.length}
           collapse={collapse}
         />
       )}
