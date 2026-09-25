@@ -25,7 +25,6 @@ export interface YAxisConfig {
   max?: number;
 }
 
-// Character width multipliers (approximate for typical UI fonts)
 const CHAR_WIDTH_BASE = 7;
 const AXIS_LABEL_PADDING = 16;
 
@@ -66,14 +65,9 @@ export function getFormattedAxis(axis?: YAXisComponentOption | XAXisComponentOpt
 
 export interface MultipleYAxesLayout {
   axes: YAXisComponentOption[];
-  /** Pixels for ECharts grid.right so the outermost right-axis labels are not clipped. */
   rightGridPadding: number;
 }
 
-/**
- * Create multiple Y axes for ECharts (left base + right additional) and the grid.right
- * padding required so the last right axis labels are fully visible.
- */
 export function getFormattedMultipleYAxesLayout(
   baseAxis: YAXisComponentOption | undefined,
   baseFormat: FormatOptions | undefined,
@@ -121,7 +115,6 @@ export function getFormattedMultipleYAxesLayout(
 
   return {
     axes,
-    // Full stack of right-axis label bands (containLabel alone does not cover offset>0 axes).
     rightGridPadding: cumulativeOffset > 0 ? cumulativeOffset : 20,
   };
 }

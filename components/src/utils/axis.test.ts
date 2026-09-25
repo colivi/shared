@@ -14,7 +14,6 @@
 import { getFormattedMultipleYAxes, getFormattedMultipleYAxesLayout } from './axis';
 
 beforeAll(() => {
-  // jsdom has no canvas metrics; force the length-based fallback path.
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
     configurable: true,
     value: () => null,
@@ -23,11 +22,7 @@ beforeAll(() => {
 
 describe('getFormattedMultipleYAxesLayout', () => {
   it('returns only the left axis when there are no additional formats', () => {
-    const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(
-      { show: true, min: 0 },
-      { unit: 'decimal' },
-      [],
-    );
+    const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout({ show: true, min: 0 }, { unit: 'decimal' }, []);
     expect(axes).toHaveLength(1);
     expect(axes[0]?.position).toBe('left');
     expect(rightGridPadding).toBe(20);
@@ -48,8 +43,6 @@ describe('getFormattedMultipleYAxesLayout', () => {
     expect(axes[1]?.offset).toBe(0);
     expect(axes[2]?.position).toBe('right');
     expect((axes[2]?.offset as number) ?? 0).toBeGreaterThan(0);
-
-    // Full label stack must be reserved on grid.right (outer axis not clipped).
     expect(rightGridPadding).toBeGreaterThan((axes[2]?.offset as number) ?? 0);
     expect(rightGridPadding).toBeGreaterThanOrEqual(40);
   });
