@@ -27,23 +27,29 @@ export interface YAxisConfig {
 
 const CHAR_WIDTH_BASE = 7;
 const AXIS_LABEL_PADDING = 16;
+/** Minimum width so short labels (e.g. "0", "1.2") still leave room for axis ticks. */
+const MIN_AXIS_LABEL_WIDTH = 28;
+/** Placeholder max when series data has not produced a max yet (keeps first layout stable). */
+const DEFAULT_AXIS_MAX_VALUE = 1000;
+/** grid.right when there are no additional right axes (single Y-axis chart). */
+const DEFAULT_RIGHT_GRID_PADDING = 20;
 
 function estimateLabelWidth(format: FormatOptions | undefined, maxValue: number): number {
   const formattedLabel = formatValue(maxValue, format);
-  const fallback = Math.max(formattedLabel.length * CHAR_WIDTH_BASE, 28);
+  const fallbackLabelWidth = Math.max(formattedLabel.length * CHAR_WIDTH_BASE, MIN_AXIS_LABEL_WIDTH);
   if (typeof document === 'undefined') {
-    return fallback;
+    return fallbackLabelWidth;
   }
   try {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     if (!context) {
-      return fallback;
+      return fallbackLabelWidth;
     }
     context.font = '12px sans-serif';
-    return Math.max(context.measureText(formattedLabel).width, 28);
+    return Math.max(context.measureText(formattedLabel).width, MIN_AXIS_LABEL_WIDTH);
   } catch {
-    return fallback;
+    return fallbackLabelWidth;
   }
 }
 
@@ -93,7 +99,7 @@ export function getFormattedMultipleYAxesLayout(
 
   let cumulativeOffset = 0;
   additionalFormats.forEach((format, index) => {
-    const labelWidth = estimateLabelWidth(format, maxValues?.[index] ?? 1000) + AXIS_LABEL_PADDING;
+    const labelWidth = estimateLabelWidth(format, maxValues?.[index] ?? DEFAULT_AXIS_MAX_VALUE) + AXIS_LABEL_PADDING;
     axes.push({
       type: 'value',
       position: 'right',
@@ -115,7 +121,7 @@ export function getFormattedMultipleYAxesLayout(
 
   return {
     axes,
-    rightGridPadding: cumulativeOffset > 0 ? cumulativeOffset : 20,
+    rightGridPadding: cumulativeOffset > 0 ? cumulativeOffset : DEFAULT_RIGHT_GRID_PADDING,
   };
 }
 
