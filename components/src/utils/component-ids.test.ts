@@ -11,27 +11,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package proxy
+import { renderHook } from '@testing-library/react';
 
-myDirectSpec: #baseHTTPDatasourceSpec & {
-	directUrl: "http://localhost:8080"
-}
+import { useId } from './component-ids';
 
-myProxySpec: #baseHTTPDatasourceSpec & {
-	proxy: #HTTPProxy & {
-		kind: "HTTPProxy"
-		spec: {
-			url: "https://prometheus.demo.prometheus.io"
-			allowedEndpoints: [
-				{
-					endpointPattern: "/api/v1/labels"
-					method:          "POST"
-				},
-				{
-					endpointPattern: "/api/v1/series"
-					method:          "POST"
-				},
-			]
-		}
-	}
-}
+it('generates unique IDs that keep their original prefix across rerenders', () => {
+  const { result, rerender } = renderHook(({ prefix }) => [useId(prefix), useId(prefix)], {
+    initialProps: { prefix: 'control' },
+  });
+  const initialIds = result.current;
+  expect(initialIds[0]).toMatch(/^control-/);
+  expect(initialIds[0]).not.toBe(initialIds[1]);
+  rerender({ prefix: 'changed' });
+  expect(result.current).toEqual(initialIds);
+});
