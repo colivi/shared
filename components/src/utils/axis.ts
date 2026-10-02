@@ -25,10 +25,12 @@ export interface YAxisConfig {
   max?: number;
 }
 
+/** Average width of one character at the 12px axis font, when canvas measurement is unavailable. */
 const CHAR_WIDTH_BASE = 7;
+/** Extra pixels after each right-axis label so the next axis does not sit on the tick. */
 const AXIS_LABEL_PADDING = 16;
-/** Minimum width so short labels (e.g. "0", "1.2") still leave room for axis ticks. */
-const MIN_AXIS_LABEL_WIDTH = 28;
+/** Four characters, so a short tick ("0", "8%") still clears the tick before the next axis. */
+const MIN_AXIS_LABEL_WIDTH = CHAR_WIDTH_BASE * 4;
 /** Placeholder max when series data has not produced a max yet (keeps first layout stable). */
 const DEFAULT_AXIS_MAX_VALUE = 1000;
 /** grid.right when there are no additional right axes (single Y-axis chart). */
