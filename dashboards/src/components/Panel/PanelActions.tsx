@@ -272,10 +272,6 @@ export const PanelActions: React.FC<PanelActionsProps> = ({
 
   const divider = <Box sx={{ flexGrow: 1 }}></Box>;
 
-  // By default, the panel header shows certain icons only on hover if the panel is in non-editing, non-fullscreen mode
-  const OnHover = ({ children }: PropsWithChildren): ReactNode =>
-    showIcons === 'hover' ? <Box sx={{ display: 'var(--panel-hover, none)' }}>{children}</Box> : <>{children}</>;
-
   return (
     <>
       {/* small: description + links outside overflow (same as medium) */}
@@ -288,7 +284,7 @@ export const PanelActions: React.FC<PanelActionsProps> = ({
           {descriptionAction} {linksAction}
         </OnHover>
         {divider}
-        <OnHover>
+        <OnHover showIcons={showIcons}>
           <OverflowMenu title={title}>
             {queryStateIndicator} {noticesIndicator}
             {informationTooltipIcon} {extraActions} {viewQueryAction}
@@ -307,12 +303,12 @@ export const PanelActions: React.FC<PanelActionsProps> = ({
           },
         })}
       >
-        <OnHover>
+        <OnHover showIcons={showIcons}>
           {descriptionAction} {linksAction}
         </OnHover>
         {divider} {queryStateIndicator}
         {noticesIndicator}
-        <OnHover>
+        <OnHover showIcons={showIcons}>
           {extraActions}
           {readActions}
           {informationTooltipIcon}
@@ -331,12 +327,12 @@ export const PanelActions: React.FC<PanelActionsProps> = ({
           [theme.containerQueries(HEADER_ACTIONS_CONTAINER_NAME).down(HEADER_MEDIUM_WIDTH)]: { display: 'none' },
         })}
       >
-        <OnHover>
+        <OnHover showIcons={showIcons}>
           {descriptionAction} {linksAction}
         </OnHover>
         {divider} {queryStateIndicator}
         {noticesIndicator}
-        <OnHover>
+        <OnHover showIcons={showIcons}>
           {extraActions}
           {viewQueryAction}
           {readActions} {informationTooltipIcon} {editActions}
@@ -452,3 +448,8 @@ export const OverflowMenu: React.FC<
     </Box>
   );
 };
+
+// Only show these actions on hover when requested by the panel options.
+function OnHover({ children, showIcons }: PropsWithChildren<{ showIcons: PanelOptions['showIcons'] }>): ReactNode {
+  return showIcons === 'hover' ? <Box sx={{ display: 'var(--panel-hover, none)' }}>{children}</Box> : <>{children}</>;
+}
