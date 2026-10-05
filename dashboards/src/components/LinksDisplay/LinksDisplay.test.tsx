@@ -14,7 +14,8 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { DataQueriesProvider, TimeRangeProviderBasic } from '@perses-dev/plugin-system';
 import type { Link } from '@perses-dev/spec';
-import { fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 
 import { VariableProvider } from '../../context';
@@ -26,13 +27,9 @@ const testTheme = createTheme({
 });
 
 const multiLinks: Link[] = [
-  { name: '[Explore] By Stack', url: '/explore?q=stack', targetBlank: true },
-  { name: '[Explore] By Pod', url: '/explore?q=pod', targetBlank: true },
-  { name: '[Explore] By Service', url: '/explore?q=service', targetBlank: true },
-  { name: '[Explore] By Node', url: '/explore?q=node', targetBlank: true },
-  { name: 'ACS system details', url: '/d/acs', targetBlank: true },
-  { name: '[Explore] By Namespace', url: '/explore?q=ns', targetBlank: true },
-  { name: '[Explore] By Phase', url: '/explore?q=phase', targetBlank: true },
+  { name: 'Link A', url: '/explore?q=stack', targetBlank: true },
+  { name: 'Link B', url: '/explore?q=pod', targetBlank: true },
+  { name: 'Link C', url: '/explore?q=service', targetBlank: true },
 ];
 
 function renderLinks(ui: ReactElement): ReturnType<typeof renderWithContext> {
@@ -48,19 +45,17 @@ function renderLinks(ui: ReactElement): ReturnType<typeof renderWithContext> {
 }
 
 describe('LinksDisplay', () => {
-  it('opens a multi-link menu and lists all link names (panel variant)', async (): Promise<void> => {
+  it('opens a multi-link menu', async () => {
     renderLinks(<LinksDisplay links={multiLinks} variant="panel" />);
 
-    const trigger = screen.getByRole('button', { name: /panel-links/i });
-    fireEvent.pointerDown(trigger);
-    fireEvent.click(trigger);
+    userEvent.click(screen.getByRole('button', { name: 'Panel-links' }));
 
-    for (const link of multiLinks) {
-      expect(await screen.findByText(link.name!)).toBeInTheDocument();
-    }
+    expect(await screen.findByRole('menuitem', { name: 'Link A' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Link B' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Link C' })).toBeInTheDocument();
   });
 
-  it('uses unique button ids so multiple layouts do not collide', (): void => {
+  it('uses a unique button id for each instance', () => {
     const { container } = renderLinks(
       <>
         <LinksDisplay links={multiLinks} variant="panel" />
