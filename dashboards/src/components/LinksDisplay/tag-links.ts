@@ -17,7 +17,6 @@ import { isRelativeTimeRange } from '@perses-dev/spec';
 
 import { encodeVariableValue } from '../../context/VariableProvider/query-params';
 
-/** Dashboard fields a tag menu needs. The full API object satisfies this. */
 export interface TagLinkDashboard {
   kind: string;
   metadata: {

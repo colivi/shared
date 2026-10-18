@@ -26,10 +26,6 @@ import type { TagLinkTarget } from './tag-links';
 
 type TagLinkAppearance = 'chip' | 'button' | 'item';
 
-/**
- * Mounted only for a tag link, so URL-only links do not require the dashboard,
- * time range, or variable providers.
- */
 export function TagLinkMenu({
   link,
   appearance,

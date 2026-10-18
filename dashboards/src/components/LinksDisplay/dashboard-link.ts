@@ -13,12 +13,7 @@
 
 import type { Link } from '@perses-dev/spec';
 
-/**
- * Tag-menu fields are defined in the spec package. This extension keeps shared
- * compiling against the published `@perses-dev/spec`, which still requires `url`,
- * until that package is released with optional `url`, `tags`, `keepTime` and
- * `includeVariables`.
- */
+/** Until @perses-dev/spec publishes optional url and tags. */
 export type DashboardLink = Omit<Link, 'url'> & {
   url?: string;
   tags?: string[];
@@ -30,7 +25,6 @@ export function linkTags(link: DashboardLink): string[] {
   return (link.tags ?? []).map((tag) => tag.trim()).filter((tag) => tag.length > 0);
 }
 
-/** A tag link lists dashboards in the current project. It has tags and no URL. */
 export function isTagLink(link: DashboardLink): boolean {
   return linkTags(link).length > 0 && (link.url?.trim() ?? '') === '';
 }
@@ -47,7 +41,6 @@ export function isDashboardLinkValid(link: DashboardLink): boolean {
   return tags.length > 0 && (link.name?.trim() ?? '') !== '';
 }
 
-/** Drop the unused target so a saved link has either a URL or tags. */
 export function normalizeDashboardLink(link: DashboardLink): DashboardLink {
   const tags = linkTags(link);
   const url = link.url?.trim() ?? '';

@@ -27,12 +27,6 @@ export interface DashboardCatalogProviderProps {
   children: ReactNode;
 }
 
-/**
- * Supplies the dashboard list used by tag-menu links. The Perses app passes
- * its own client so `api_prefix` is honored. The default calls
- * `{base}/api/v1/projects/{project}/dashboards`, where `base` is the pathname
- * before `/projects/`.
- */
 export function DashboardCatalogProvider({ listDashboards, children }: DashboardCatalogProviderProps): ReactElement {
   return <DashboardCatalogContext.Provider value={listDashboards}>{children}</DashboardCatalogContext.Provider>;
 }

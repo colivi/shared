@@ -242,7 +242,6 @@ function LinkTableRow({
   onMoveDown,
 }: LinkTableRowProps): ReactElement {
   const displayName = link.name?.trim() || `Link ${index + 1}`;
-  // Kind is local so a new tag link stays a tag link before the first tag is typed.
   const [kind, setKind] = useState<'url' | 'tags'>(isTagLink(link) ? 'tags' : 'url');
   const tagMode = kind === 'tags';
   const hasError = !isDashboardLinkValid(link);
