@@ -28,14 +28,30 @@ describe('getFormattedMultipleYAxesLayout', () => {
     expect(rightGridPadding).toBe(20);
   });
 
-  it('stacks right axes with increasing offset and grows rightGridPadding', () => {
+  it('leaves a single right axis to containLabel', () => {
+    const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout({ show: true }, { unit: 'percent' }, [
+      { unit: 'bytes' },
+    ]);
+    expect(axes).toHaveLength(2);
+    expect(axes[1]?.offset).toBe(0);
+    expect(rightGridPadding).toBe(20);
+  });
+
+  it('reserves grid.right only for right axes after the first', () => {
     const formats = [{ unit: 'ops/sec' as const }, { unit: 'decimal' as const }];
+    const maxValues = [100, 1000];
     const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(
       { show: true },
       { unit: 'percent' },
       formats,
-      [100, 1000],
+      maxValues,
     );
+    const secondAxisWidth = getFormattedMultipleYAxesLayout(
+      { show: true },
+      { unit: 'percent' },
+      [formats[1], formats[0]],
+      [maxValues[1], maxValues[0]],
+    ).axes[2]?.offset;
 
     expect(axes).toHaveLength(3);
     expect(axes[0]?.position).toBe('left');
@@ -43,17 +59,18 @@ describe('getFormattedMultipleYAxesLayout', () => {
     expect(axes[1]?.offset).toBe(0);
     expect(axes[2]?.position).toBe('right');
     expect((axes[2]?.offset as number) ?? 0).toBeGreaterThan(0);
-    expect(rightGridPadding).toBeGreaterThan((axes[2]?.offset as number) ?? 0);
-    expect(rightGridPadding).toBeGreaterThanOrEqual(40);
+    expect(rightGridPadding).toBe(secondAxisWidth);
+    expect(rightGridPadding).toBeLessThan(((axes[2]?.offset as number) ?? 0) + (secondAxisWidth as number));
   });
 
-  it('still accumulates padding when maxValues is omitted', () => {
-    const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(undefined, { unit: 'decimal' }, [
-      { unit: 'ops/sec' },
-      { unit: 'events/sec' },
-    ]);
+  it('still reserves only the outer axis when maxValues is omitted', () => {
+    const formats = [{ unit: 'ops/sec' as const }, { unit: 'events/sec' as const }];
+    const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(undefined, { unit: 'decimal' }, formats);
+    const secondAxisWidth = getFormattedMultipleYAxesLayout(undefined, { unit: 'decimal' }, [formats[1], formats[0]])
+      .axes[2]?.offset;
     expect(axes).toHaveLength(3);
-    expect(rightGridPadding).toBeGreaterThan(40);
+    expect(rightGridPadding).toBe(secondAxisWidth);
+    expect(rightGridPadding).toBeGreaterThan(20);
   });
 });
 

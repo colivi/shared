@@ -73,6 +73,7 @@ export function getFormattedAxis(axis?: YAXisComponentOption | XAXisComponentOpt
 
 export interface MultipleYAxesLayout {
   axes: YAXisComponentOption[];
+  /** Extra grid.right for right axes after the first. containLabel covers the first. */
   rightGridPadding: number;
 }
 
@@ -100,6 +101,7 @@ export function getFormattedMultipleYAxesLayout(
   axes.push(baseAxisConfig);
 
   let cumulativeOffset = 0;
+  let outerAxesWidth = 0;
   additionalFormats.forEach((format, index) => {
     const labelWidth = estimateLabelWidth(format, maxValues?.[index] ?? DEFAULT_AXIS_MAX_VALUE) + AXIS_LABEL_PADDING;
     axes.push({
@@ -119,11 +121,14 @@ export function getFormattedMultipleYAxesLayout(
       show: baseAxis?.show,
     });
     cumulativeOffset += labelWidth;
+    if (index > 0) {
+      outerAxesWidth += labelWidth;
+    }
   });
 
   return {
     axes,
-    rightGridPadding: cumulativeOffset > 0 ? cumulativeOffset : DEFAULT_RIGHT_GRID_PADDING,
+    rightGridPadding: additionalFormats.length > 1 ? outerAxesWidth : DEFAULT_RIGHT_GRID_PADDING,
   };
 }
 
