@@ -18,7 +18,7 @@ import { useCallback } from 'react';
 
 import { useEditMode, usePanelGroup, usePanelGroupActions, useViewPanelGroup } from '../../context';
 import type { PanelGroupDefinition, PanelGroupItemLayout } from '../../model';
-import { isPanelGroupVisible } from '../../utils';
+import { isPanelGroupVisible, visibilityNotice } from '../../utils';
 import type { PanelOptions } from '../Panel';
 import { FixedValueVariableProvider } from '../Variables';
 import type { RowProps } from './Row';
@@ -56,6 +56,8 @@ export function GridLayout(props: GridLayoutProps): ReactElement | null {
   if (!isEditMode && !isPanelGroupVisible(groupDefinition.visibility, variableValues)) {
     return null;
   }
+  const notice =
+    isEditMode && groupDefinition.visibility ? visibilityNotice(groupDefinition.visibility, variableValues) : undefined;
 
   return (
     <>
@@ -67,6 +69,7 @@ export function GridLayout(props: GridLayoutProps): ReactElement | null {
           panelOptions={panelOptions}
           isEditMode={isEditMode}
           onLayoutChange={handleLayoutChange}
+          visibilityNotice={notice}
         />
       ) : (
         <RepeatGridLayout
@@ -77,6 +80,7 @@ export function GridLayout(props: GridLayoutProps): ReactElement | null {
           panelOptions={panelOptions}
           isEditMode={isEditMode}
           onLayoutChange={handleLayoutChange}
+          visibilityNotice={notice}
         />
       )}
     </>

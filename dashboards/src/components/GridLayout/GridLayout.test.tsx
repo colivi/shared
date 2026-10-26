@@ -63,7 +63,24 @@ describe('GridLayout visibility', () => {
     vi.mocked(useVariableValues).mockReturnValue({ phase: { value: 'PRD', loading: false } });
     vi.mocked(useEditMode).mockReturnValue({ isEditMode: true } as ReturnType<typeof useEditMode>);
     render(<GridLayout panelGroupId={0} />);
-    expect(Row).toHaveBeenCalled();
+    expect(Row).toHaveBeenCalledWith(
+      expect.objectContaining({
+        visibilityNotice: { hidden: true, description: 'Shown when phase = DEV' },
+      }),
+      {},
+    );
+  });
+
+  it('marks a matching group as shown in edit mode', () => {
+    vi.mocked(useVariableValues).mockReturnValue({ phase: { value: 'DEV', loading: false } });
+    vi.mocked(useEditMode).mockReturnValue({ isEditMode: true } as ReturnType<typeof useEditMode>);
+    render(<GridLayout panelGroupId={0} />);
+    expect(Row).toHaveBeenCalledWith(
+      expect.objectContaining({
+        visibilityNotice: { hidden: false, description: 'Shown when phase = DEV' },
+      }),
+      {},
+    );
   });
 
   it('renders a group without visibility whatever the variables', () => {

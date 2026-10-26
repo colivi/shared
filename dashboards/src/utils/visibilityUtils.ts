@@ -26,7 +26,7 @@ function matchesPattern(pattern: string, value: string): boolean {
 
 /**
  * A group without visibility is always visible. Otherwise the selected values of the variable are tested against
- * `visibility.value` with `visibility.operator` (default `equals`); an unknown or loading variable hides the group.
+ * `visibility.value` with `visibility.operator` (default `=`); an unknown or loading variable hides the group.
  */
 export function isPanelGroupVisible(
   visibility: PanelGroupVisibility | undefined,
@@ -41,15 +41,28 @@ export function isPanelGroupVisible(
   }
   const selected: string[] = [state.value ?? []].flat();
   const matchesAny = (value: string): boolean =>
-    visibility.operator === 'matches' || visibility.operator === 'notMatches'
+    visibility.operator === '=~' || visibility.operator === '!~'
       ? visibility.value.some((pattern) => matchesPattern(pattern, value))
       : visibility.value.includes(value);
 
   switch (visibility.operator) {
-    case 'notEquals':
-    case 'notMatches':
+    case '!=':
+    case '!~':
       return !selected.some(matchesAny);
     default:
       return selected.some(matchesAny);
   }
+}
+
+export interface VisibilityNotice {
+  hidden: boolean;
+  description: string;
+}
+
+export function visibilityNotice(visibility: PanelGroupVisibility, variableValues: VariableStateMap): VisibilityNotice {
+  const operator = visibility.operator ?? '=';
+  return {
+    hidden: !isPanelGroupVisible(visibility, variableValues),
+    description: `Shown when ${visibility.variable} ${operator} ${visibility.value.join(', ')}`,
+  };
 }
