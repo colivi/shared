@@ -38,19 +38,22 @@ describe('getFormattedMultipleYAxesLayout', () => {
   });
 
   it('reserves grid.right only for right axes after the first', () => {
-    const formats = [{ unit: 'ops/sec' as const }, { unit: 'decimal' as const }];
-    const maxValues = [100, 1000];
+    const opsPerSec = { unit: 'ops/sec' as const };
+    const decimal = { unit: 'decimal' as const };
+    const formats = [opsPerSec, decimal];
+    const firstMax = 100;
+    const secondMax = 1000;
     const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(
       { show: true },
       { unit: 'percent' },
       formats,
-      maxValues,
+      [firstMax, secondMax],
     );
     const secondAxisWidth = getFormattedMultipleYAxesLayout(
       { show: true },
       { unit: 'percent' },
-      [formats[1], formats[0]],
-      [maxValues[1], maxValues[0]],
+      [decimal, opsPerSec],
+      [secondMax, firstMax],
     ).axes[2]?.offset;
 
     expect(axes).toHaveLength(3);
@@ -64,9 +67,11 @@ describe('getFormattedMultipleYAxesLayout', () => {
   });
 
   it('still reserves only the outer axis when maxValues is omitted', () => {
-    const formats = [{ unit: 'ops/sec' as const }, { unit: 'events/sec' as const }];
+    const opsPerSec = { unit: 'ops/sec' as const };
+    const eventsPerSec = { unit: 'events/sec' as const };
+    const formats = [opsPerSec, eventsPerSec];
     const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(undefined, { unit: 'decimal' }, formats);
-    const secondAxisWidth = getFormattedMultipleYAxesLayout(undefined, { unit: 'decimal' }, [formats[1], formats[0]])
+    const secondAxisWidth = getFormattedMultipleYAxesLayout(undefined, { unit: 'decimal' }, [eventsPerSec, opsPerSec])
       .axes[2]?.offset;
     expect(axes).toHaveLength(3);
     expect(rightGridPadding).toBe(secondAxisWidth);
