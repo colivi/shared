@@ -13,7 +13,10 @@
 
 import type { Link } from '@perses-dev/spec';
 
-/** Until @perses-dev/spec publishes optional url and tags. */
+/**
+ * Local shape until @perses-dev/spec publishes Link as URLLink | TagLink.
+ * The installed package still requires url and has no tag fields.
+ */
 export type DashboardLink = Omit<Link, 'url'> & {
   url?: string;
   tags?: string[];
@@ -59,5 +62,7 @@ export function normalizeDashboardLink(link: DashboardLink): DashboardLink {
     tooltip: link.tooltip,
     renderVariables: link.renderVariables,
     targetBlank: link.targetBlank,
+    keepTime: link.keepTime,
+    includeVariables: link.includeVariables,
   };
 }

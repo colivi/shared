@@ -14,7 +14,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { isDashboardLinkValid, isTagLink, normalizeDashboardLink } from './dashboard-link';
-import { appBasePath, buildTagLinkHref, selectTagLinkTargets } from './tag-links';
+import { appBasePath, appendLinkState, buildTagLinkHref, selectTagLinkTargets } from './tag-links';
 import type { TagLinkDashboard } from './tag-links';
 
 const dashboards: TagLinkDashboard[] = [
@@ -96,6 +96,34 @@ describe('buildTagLinkHref', () => {
   });
 });
 
+describe('appendLinkState', () => {
+  it('copies the time range and every current variable onto a URL', () => {
+    expect(
+      appendLinkState('https://example.com/runbook?page=1#section', {
+        keepTime: true,
+        includeVariables: true,
+        timeRange: { pastDuration: '1h' },
+        variables: {
+          region: { value: 'eu' },
+          env: { value: 'production' },
+          empty: { value: '' },
+        },
+      }),
+    ).toBe('https://example.com/runbook?page=1&start=1h&var-env=production&var-region=eu#section');
+  });
+
+  it('leaves a URL unchanged when both flags are off', () => {
+    expect(
+      appendLinkState('https://example.com/runbook', {
+        keepTime: false,
+        includeVariables: false,
+        timeRange: { pastDuration: '1h' },
+        variables: { env: { value: 'production' } },
+      }),
+    ).toBe('https://example.com/runbook');
+  });
+});
+
 describe('appBasePath', () => {
   it('returns the path before /projects/', () => {
     expect(appBasePath('/perses/projects/demo/dashboards/overview')).toBe('/perses');
@@ -111,6 +139,26 @@ describe('dashboard link validity', () => {
     expect(isDashboardLinkValid({ name: 'Menu', tags: [' traffic '] })).toBe(true);
     expect(isDashboardLinkValid({ tags: ['traffic'] })).toBe(false);
     expect(isDashboardLinkValid({ name: 'Both', url: 'https://perses.dev', tags: ['traffic'] })).toBe(false);
+  });
+
+  it('keeps time and variable flags on a URL link', () => {
+    expect(
+      normalizeDashboardLink({
+        name: 'Docs',
+        url: ' https://perses.dev ',
+        keepTime: true,
+        includeVariables: true,
+        renderVariables: true,
+      }),
+    ).toEqual({
+      name: 'Docs',
+      url: 'https://perses.dev',
+      tooltip: undefined,
+      renderVariables: true,
+      targetBlank: undefined,
+      keepTime: true,
+      includeVariables: true,
+    });
   });
 
   it('drops the URL when saving a tag link', () => {

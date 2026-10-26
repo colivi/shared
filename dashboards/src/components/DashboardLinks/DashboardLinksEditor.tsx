@@ -307,9 +307,11 @@ function LinkTableRow({
                     onUpdate({
                       name: link.name,
                       tooltip: link.tooltip,
-                      url: '',
-                      renderVariables: true,
-                      targetBlank: true,
+                      url: link.url ?? '',
+                      renderVariables: link.renderVariables ?? true,
+                      targetBlank: link.targetBlank ?? true,
+                      keepTime: link.keepTime,
+                      includeVariables: link.includeVariables,
                     });
                   }}
                 >
@@ -320,36 +322,39 @@ function LinkTableRow({
               {tagMode ? (
                 <TagLinkFields link={link} onUpdate={onUpdate} />
               ) : (
-                <LinkEditorForm
-                  mode="modalEmbedded"
-                  url={{
-                    value: link.url ?? '',
-                    label: 'URL',
-                    error: { hasError: hasError, helperText: hasError ? 'URL is required' : undefined },
-                    placeholder: 'https://example.com/dashboard?var=$variable',
-                    onChange: (url) => onUpdate({ ...link, url, tags: undefined }),
-                  }}
-                  name={{
-                    value: link.name ?? '',
-                    label: 'Display Name',
-                    onChange: (name) => onUpdate({ ...link, name }),
-                  }}
-                  tooltip={{
-                    value: link.tooltip ?? '',
-                    label: 'Tooltip',
-                    onChange: (tooltip) => onUpdate({ ...link, tooltip }),
-                  }}
-                  renderVariables={{
-                    value: link.renderVariables ?? true,
-                    label: 'Replace variables in URL',
-                    onChange: (renderVariables) => onUpdate({ ...link, renderVariables }),
-                  }}
-                  newTabOpen={{
-                    value: link.targetBlank ?? true,
-                    label: 'Open in new tab',
-                    onChange: (targetBlank) => onUpdate({ ...link, targetBlank }),
-                  }}
-                />
+                <>
+                  <LinkEditorForm
+                    mode="modalEmbedded"
+                    url={{
+                      value: link.url ?? '',
+                      label: 'URL',
+                      error: { hasError: hasError, helperText: hasError ? 'URL is required' : undefined },
+                      placeholder: 'https://example.com/dashboard?var=$variable',
+                      onChange: (url) => onUpdate({ ...link, url, tags: undefined }),
+                    }}
+                    name={{
+                      value: link.name ?? '',
+                      label: 'Display Name',
+                      onChange: (name) => onUpdate({ ...link, name }),
+                    }}
+                    tooltip={{
+                      value: link.tooltip ?? '',
+                      label: 'Tooltip',
+                      onChange: (tooltip) => onUpdate({ ...link, tooltip }),
+                    }}
+                    renderVariables={{
+                      value: link.renderVariables ?? true,
+                      label: 'Replace variables in URL',
+                      onChange: (renderVariables) => onUpdate({ ...link, renderVariables }),
+                    }}
+                    newTabOpen={{
+                      value: link.targetBlank ?? true,
+                      label: 'Open in new tab',
+                      onChange: (targetBlank) => onUpdate({ ...link, targetBlank }),
+                    }}
+                  />
+                  <LinkStateFields link={link} onUpdate={onUpdate} variableLabel="Include current variables" />
+                </>
               )}
             </Box>
           </Collapse>
@@ -406,26 +411,40 @@ function TagLinkFields({
         value={link.tooltip ?? ''}
         onChange={(event) => onUpdate({ ...link, tooltip: event.target.value })}
       />
-      <Stack direction="row" gap={1}>
-        <FormControlLabel
-          label="Keep current time range"
-          control={
-            <Checkbox
-              checked={link.keepTime === true}
-              onChange={(event) => onUpdate({ ...link, keepTime: event.target.checked })}
-            />
-          }
-        />
-        <FormControlLabel
-          label="Include matching variables"
-          control={
-            <Checkbox
-              checked={link.includeVariables === true}
-              onChange={(event) => onUpdate({ ...link, includeVariables: event.target.checked })}
-            />
-          }
-        />
-      </Stack>
+      <LinkStateFields link={link} onUpdate={onUpdate} variableLabel="Include matching variables" />
+    </Stack>
+  );
+}
+
+function LinkStateFields({
+  link,
+  onUpdate,
+  variableLabel,
+}: {
+  link: DashboardLink;
+  onUpdate: (link: DashboardLink) => void;
+  variableLabel: string;
+}): ReactElement {
+  return (
+    <Stack direction="row" gap={1}>
+      <FormControlLabel
+        label="Keep current time range"
+        control={
+          <Checkbox
+            checked={link.keepTime === true}
+            onChange={(event) => onUpdate({ ...link, keepTime: event.target.checked })}
+          />
+        }
+      />
+      <FormControlLabel
+        label={variableLabel}
+        control={
+          <Checkbox
+            checked={link.includeVariables === true}
+            onChange={(event) => onUpdate({ ...link, includeVariables: event.target.checked })}
+          />
+        }
+      />
     </Stack>
   );
 }

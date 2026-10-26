@@ -91,24 +91,61 @@ export function buildTagLinkHref(input: {
   const base = input.basePath.endsWith('/') ? input.basePath.slice(0, -1) : input.basePath;
   const path = `${base}/projects/${encodeURIComponent(input.project)}/dashboards/${encodeURIComponent(input.name)}`;
   const params = new URLSearchParams();
+  appendLinkParams(params, input, new Set(input.destinationVariableNames));
+  const query = params.toString();
+  return query === '' ? path : `${path}?${query}`;
+}
+
+/** Appends time and variables to an existing URL. A URL copies every current variable. */
+export function appendLinkState(
+  url: string,
+  input: {
+    keepTime: boolean;
+    includeVariables: boolean;
+    timeRange: TimeRangeValue;
+    variables: Record<string, { value: VariableValue }>;
+  },
+): string {
+  if ((!input.keepTime && !input.includeVariables) || url === '') {
+    return url;
+  }
+  const hashAt = url.indexOf('#');
+  const hash = hashAt >= 0 ? url.slice(hashAt) : '';
+  const beforeHash = hashAt >= 0 ? url.slice(0, hashAt) : url;
+  const queryAt = beforeHash.indexOf('?');
+  const path = queryAt >= 0 ? beforeHash.slice(0, queryAt) : beforeHash;
+  const params = new URLSearchParams(queryAt >= 0 ? beforeHash.slice(queryAt + 1) : '');
+  appendLinkParams(params, input);
+  const query = params.toString();
+  return query === '' ? `${path}${hash}` : `${path}?${query}${hash}`;
+}
+
+function appendLinkParams(
+  params: URLSearchParams,
+  input: {
+    keepTime: boolean;
+    includeVariables: boolean;
+    timeRange: TimeRangeValue;
+    variables: Record<string, { value: VariableValue }>;
+  },
+  allowed?: Set<string>,
+): void {
   if (input.keepTime) {
     appendTimeRange(params, input.timeRange);
   }
-  if (input.includeVariables) {
-    const known = new Set(input.destinationVariableNames);
-    for (const name of Object.keys(input.variables).toSorted()) {
-      if (!known.has(name)) {
-        continue;
-      }
-      const encoded = encodeVariableValue(input.variables[name]?.value ?? null);
-      if (!encoded) {
-        continue;
-      }
-      params.set(`var-${name}`, encoded);
-    }
+  if (!input.includeVariables) {
+    return;
   }
-  const query = params.toString();
-  return query === '' ? path : `${path}?${query}`;
+  for (const name of Object.keys(input.variables).toSorted()) {
+    if (allowed && !allowed.has(name)) {
+      continue;
+    }
+    const encoded = encodeVariableValue(input.variables[name]?.value ?? null);
+    if (!encoded) {
+      continue;
+    }
+    params.set(`var-${name}`, encoded);
+  }
 }
 
 function appendTimeRange(params: URLSearchParams, timeRange: TimeRangeValue): void {

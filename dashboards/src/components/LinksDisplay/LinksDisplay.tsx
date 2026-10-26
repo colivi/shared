@@ -14,14 +14,16 @@
 import type { Theme } from '@mui/material';
 import { IconButton, Link as LinkComponent, Menu, MenuItem, Chip, capitalize, Stack } from '@mui/material';
 import { InfoTooltip } from '@perses-dev/components';
-import { useReplaceVariablesInString, useReplaceVariablesInUrl } from '@perses-dev/plugin-system';
+import { useReplaceVariablesInString, useReplaceVariablesInUrl, useTimeRange } from '@perses-dev/plugin-system';
 import LaunchIcon from 'mdi-material-ui/Launch';
 import type { MouseEvent, ReactElement } from 'react';
 import { useState } from 'react';
 
+import { useVariableDefinitionStates } from '../../context';
 import type { DashboardLink } from './dashboard-link';
 import { isTagLink } from './dashboard-link';
 import { TagLinkMenu } from './TagLinkMenu';
+import { appendLinkState } from './tag-links';
 
 type LinksVariant = 'dashboard' | 'panel';
 
@@ -190,10 +192,19 @@ function useLink(link: DashboardLink): DashboardLink & { url: string } {
   const tooltip = useReplaceVariablesInString(link.tooltip);
   // URL: URL-aware interpolation (also expands %24var inside query params).
   const interpolatedUrl = useReplaceVariablesInUrl(link.renderVariables === false ? undefined : link.url);
-  const url = link.renderVariables === false ? (link.url ?? '') : (interpolatedUrl ?? link.url ?? '');
+  const { timeRange } = useTimeRange();
+  const variables = useVariableDefinitionStates();
+  const baseUrl = link.renderVariables === false ? (link.url ?? '') : (interpolatedUrl ?? link.url ?? '');
+  // keepTime and includeVariables apply after $var interpolation. A URL receives every current variable.
+  const url = appendLinkState(baseUrl, {
+    keepTime: link.keepTime === true,
+    includeVariables: link.includeVariables === true,
+    timeRange,
+    variables,
+  });
 
   if (link.renderVariables === false) {
-    return { ...link, url: link.url ?? '' };
+    return { ...link, url };
   }
 
   return { ...link, url, name, tooltip };
