@@ -43,12 +43,10 @@ describe('getFormattedMultipleYAxesLayout', () => {
     const formats = [opsPerSec, decimal];
     const firstMax = 100;
     const secondMax = 1000;
-    const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout(
-      { show: true },
-      { unit: 'percent' },
-      formats,
-      [firstMax, secondMax],
-    );
+    const { axes, rightGridPadding } = getFormattedMultipleYAxesLayout({ show: true }, { unit: 'percent' }, formats, [
+      firstMax,
+      secondMax,
+    ]);
     const secondAxisWidth = getFormattedMultipleYAxesLayout(
       { show: true },
       { unit: 'percent' },
