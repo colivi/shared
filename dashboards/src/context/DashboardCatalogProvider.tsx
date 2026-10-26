@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { fetchJson } from '@perses-dev/client';
+import { useFetch } from '@perses-dev/client';
 import type { ReactElement, ReactNode } from 'react';
-import { createContext, useContext } from 'react';
+import { createContext, useCallback, useContext } from 'react';
 
 import { appBasePath } from '../components/LinksDisplay/tag-links';
 import type { TagLinkDashboard } from '../components/LinksDisplay/tag-links';
@@ -32,10 +32,14 @@ export function DashboardCatalogProvider({ listDashboards, children }: Dashboard
 }
 
 export function useListProjectDashboards(): ListProjectDashboards {
-  return useContext(DashboardCatalogContext) ?? defaultListProjectDashboards;
-}
-
-async function defaultListProjectDashboards(project: string): Promise<TagLinkDashboard[]> {
-  const prefix = typeof window === 'undefined' ? '' : appBasePath(window.location.pathname);
-  return fetchJson<TagLinkDashboard[]>(`${prefix}/api/v1/projects/${encodeURIComponent(project)}/dashboards`);
+  const listDashboards = useContext(DashboardCatalogContext);
+  const { fetchJson } = useFetch();
+  const fallback = useCallback(
+    (project: string) => {
+      const prefix = typeof window === 'undefined' ? '' : appBasePath(window.location.pathname);
+      return fetchJson<TagLinkDashboard[]>(`${prefix}/api/v1/projects/${encodeURIComponent(project)}/dashboards`);
+    },
+    [fetchJson],
+  );
+  return listDashboards ?? fallback;
 }

@@ -54,6 +54,18 @@ export interface DashboardLinksEditorProps {
   onCancel: () => void;
 }
 
+function swapIds(ids: string[], from: number, to: number): string[] {
+  const next = ids.slice();
+  const moved = next[from];
+  const target = next[to];
+  if (moved === undefined || target === undefined) {
+    return ids;
+  }
+  next[from] = target;
+  next[to] = moved;
+  return next;
+}
+
 const DEFAULT_LINK: Link = {
   url: '',
   name: '',
@@ -69,6 +81,11 @@ export function DashboardLinksEditor({
 }: DashboardLinksEditorProps): ReactElement {
   const [links, setLinks] = useImmer<DashboardLink[]>(initialLinks);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  // Stable per row, and moved with the row. key={index} would reuse kind and tagsText after a reorder.
+  const [rowIds, setRowIds] = useState<{ next: number; ids: string[] }>(() => ({
+    next: initialLinks.length,
+    ids: initialLinks.map((_, index) => `link-row-${index}`),
+  }));
 
   const { openDiscardChangesConfirmationDialog, closeDiscardChangesConfirmationDialog } =
     useDiscardChangesConfirmationDialog();
@@ -91,6 +108,10 @@ export function DashboardLinksEditor({
     setLinks((draft) => {
       draft.push({ ...DEFAULT_LINK });
     });
+    setRowIds((state) => ({
+      next: state.next + 1,
+      ids: [...state.ids, `link-row-${state.next}`],
+    }));
     setExpandedIndex(links.length);
   };
 
@@ -98,6 +119,7 @@ export function DashboardLinksEditor({
     setLinks((draft) => {
       draft.splice(index, 1);
     });
+    setRowIds((state) => ({ ...state, ids: state.ids.filter((_, i) => i !== index) }));
     if (expandedIndex === index) {
       setExpandedIndex(null);
     } else if (expandedIndex !== null && expandedIndex > index) {
@@ -114,6 +136,7 @@ export function DashboardLinksEditor({
         draft[index] = temp;
       }
     });
+    setRowIds((state) => ({ ...state, ids: swapIds(state.ids, index, index - 1) }));
     if (expandedIndex === index) {
       setExpandedIndex(index - 1);
     } else if (expandedIndex === index - 1) {
@@ -130,6 +153,7 @@ export function DashboardLinksEditor({
         draft[index] = temp;
       }
     });
+    setRowIds((state) => ({ ...state, ids: swapIds(state.ids, index, index + 1) }));
     if (expandedIndex === index) {
       setExpandedIndex(index + 1);
     } else if (expandedIndex === index + 1) {
@@ -186,7 +210,7 @@ export function DashboardLinksEditor({
               <TableBody>
                 {links.map((link, index) => (
                   <LinkTableRow
-                    key={index}
+                    key={rowIds.ids[index] ?? index}
                     link={link}
                     index={index}
                     isFirst={index === 0}
